@@ -8,7 +8,7 @@
 #include "CommDefs.h"
 #include "uuid/uuid.h"
 #include "Media/ICamera.h"
-
+#include "22222.h"
 #define NLEVER 6
 #define CALARM_ALL_CHANNELS -1
 #define ALARMIN_LATCH_DELAY 0    //报警输入延时时间的默认值

@@ -1,4 +1,4 @@
-
+#include "111.h"
 #include "Alarm.h"
 #include "DevAlarm.h"
 #include "APIs/Alarm.h"
@@ -11,9 +11,9 @@
 
 #define NLEVER 6
 #define CALARM_ALL_CHANNELS -1
-#define ALARMIN_LATCH_DELAY 0    //±¨¾¯ÊäÈëÑÓÊ±Ê±¼äµÄÄ¬ÈÏÖµ
+#define ALARMIN_LATCH_DELAY 0    //æŠ¥è­¦è¾“å…¥å»¶æ—¶æ—¶é—´çš„é»˜è®¤å€¼
 
-extern SYSTEM_TIME         g_StartTime;            //¿ª»úÊ±¼ä
+extern SYSTEM_TIME         g_StartTime;            //å¼€æœºæ—¶é—´
 extern int g_nNetAlarmIn;
 
 IAlarmManager* IAlarmManager::instance()
@@ -28,12 +28,12 @@ IAlarmManager* IAlarmManager::instance()
 	return _ins;
 
 }
-// µÃµ½±¨¾¯ÊäÈëÂ·Êı
+// å¾—åˆ°æŠ¥è­¦è¾“å…¥è·¯æ•°
 int IAlarmManager::getInChannels()
 {
 	return CDevAlarm::GetInSlots();
 }
-// µÃµ½±¨¾¯Êä³öÂ·Êı
+// å¾—åˆ°æŠ¥è­¦è¾“å‡ºè·¯æ•°
 int IAlarmManager::getOutChannels()
 {
 	return CDevAlarm::GetOutSlots();
@@ -41,13 +41,13 @@ int IAlarmManager::getOutChannels()
 
 
 /*-----------------------------------------------------------------------
-    CAlarmÀàµÄ¾²Ì¬³ÉÔ±±äÁ¿£¬¶¨ÒåÎª¾²Ì¬ÊÇÒòÎªCAlarmManager¶ÔÏóÔÚÒ»¿ªÊ¼µÄ
-    ³õÊ¼»¯º¯ÊıÖĞ¾ÍÒª±»µ÷ÓÃ£»
+    CAlarmç±»çš„é™æ€æˆå‘˜å˜é‡ï¼Œå®šä¹‰ä¸ºé™æ€æ˜¯å› ä¸ºCAlarmManagerå¯¹è±¡åœ¨ä¸€å¼€å§‹çš„
+    åˆå§‹åŒ–å‡½æ•°ä¸­å°±è¦è¢«è°ƒç”¨ï¼›
 -----------------------------------------------------------------------*/
 PATTERN_SINGLETON_IMPLEMENT(CAlarm);
 void CAlarm::ThreadProc(uint arg)
 {
-    while (m_thread.getLoop())                //¶ÁÈ¡²¢·Ö·¢ËÄÖÖ±¨¾¯ĞÅºÅ
+    while (m_thread.getLoop())                //è¯»å–å¹¶åˆ†å‘å››ç§æŠ¥è­¦ä¿¡å·
     {
     	
     	uint64 net_alarm_state = 0;
@@ -81,7 +81,7 @@ CAlarm::CAlarm() :
     m_dwAlarmOutState = 0;
     m_dwManualAlarmState = 0;
 
-    m_dwAlarmOutType = 0;    //±¨¾¯Êä³öÄ£Ê½³õÊ¼»¯Îª×Ô¶¯Êä³ö.
+    m_dwAlarmOutType = 0;    //æŠ¥è­¦è¾“å‡ºæ¨¡å¼åˆå§‹åŒ–ä¸ºè‡ªåŠ¨è¾“å‡º.
 
     const char *pStrName = NULL;
     for (int ii = 0; ii < N_ALM_OUT; ii++)
@@ -153,14 +153,14 @@ bool CAlarm::Start()
 	m_nAlarmIn = IAlarmManager::getInChannels();
 	m_nNetAlarmIn = 0;
 	
-    //¶ÁÈ¡ÅäÖÃĞÅÏ¢
+    //è¯»å–é…ç½®ä¿¡æ¯
     m_CCfgAlarm.update();
     m_CCfgNetAlarm.update();
 
-    //ÏòÊÂ¼şÖĞĞÄ×¢²á´¦ÀíÀà
+    //å‘äº‹ä»¶ä¸­å¿ƒæ³¨å†Œå¤„ç†ç±»
     VF_IAppEventManager::instance()->attach(VF_IAppEventManager::Proc(&CAlarm::onAppEvent, this));
 
-    //ÅäÖÃ±ä»¯»Øµôº¯Êı
+    //é…ç½®å˜åŒ–å›æ‰å‡½æ•°
     m_CCfgAlarm.attach(this, (TCONFIG_PROC)&CAlarm::onConfigAlarm);
     m_CCfgNetAlarm.attach(this, (TCONFIG_PROC)&CAlarm::onConfigNetAlarm);
 	
@@ -180,12 +180,12 @@ bool CAlarm::Start()
     }
 
 /*-----------------------------------------------------------------------
-    Æô¶¯±¨¾¯Ä£¿éÖĞµÄÏß³ÌºÍ¶¨Ê±Æ÷
+    å¯åŠ¨æŠ¥è­¦æ¨¡å—ä¸­çš„çº¿ç¨‹å’Œå®šæ—¶å™¨
 -----------------------------------------------------------------------*/
 	m_cAlarmTimer.Start(this, (VD_TIMERPROC)&CAlarm::OnAlarmDelayTimer, 0, 1000);
    
     /*-----------------------------------------------------------------------
-        Æô¶¯±¨¾¯Ä£¿éÖĞµÄÏß³ÌºÍ¶¨Ê±Æ÷
+        å¯åŠ¨æŠ¥è­¦æ¨¡å—ä¸­çš„çº¿ç¨‹å’Œå®šæ—¶å™¨
     -----------------------------------------------------------------------*/
 	m_thread.run("Alarm", this, (ASYNPROC)&CAlarm::ThreadProc, 0, 0);
     return TRUE;
@@ -196,7 +196,7 @@ bool CAlarm::Stop()
     comm_infof("CAlarm::Stop()>>>>>>>>>\n");
     
 /*-----------------------------------------------------------------------
-    Ïú»ÙÏß³ÌºÍÍ£Ö¹¶¨Ê±Æ÷
+    é”€æ¯çº¿ç¨‹å’Œåœæ­¢å®šæ—¶å™¨
 -----------------------------------------------------------------------*/
     m_thread.stopRun();
 
@@ -207,9 +207,9 @@ bool CAlarm::Stop()
 
 /*!    $FXN :    Attach
 ==    ======================================================================
-==    $DSC :    ¸Ãº¯ÊıÓÃÀ´×¢²áÒ»¸ö´¦Àí±¨¾¯ĞÅºÅµÄ¶ÔÏó
-==    $ARG :    pObj£º´¦Àí±¨¾¯ĞÅºÅµÄ¶ÔÏóÖ¸Õë
-==         :    pPorc£º´¦Àí±¨¾¯ĞÅºÅµÄ»Øµ÷º¯ÊıÖ¸Õë
+==    $DSC :    è¯¥å‡½æ•°ç”¨æ¥æ³¨å†Œä¸€ä¸ªå¤„ç†æŠ¥è­¦ä¿¡å·çš„å¯¹è±¡
+==    $ARG :    pObjï¼šå¤„ç†æŠ¥è­¦ä¿¡å·çš„å¯¹è±¡æŒ‡é’ˆ
+==         :    pPorcï¼šå¤„ç†æŠ¥è­¦ä¿¡å·çš„å›è°ƒå‡½æ•°æŒ‡é’ˆ
 ==    $RET :    BOOL
 ==    ======================================================================
 */
@@ -251,7 +251,7 @@ bool CAlarm::Detach(CObject * pObj, SIG_ALARM_BUFFER pProc)
 
 /*    $FXN :    SetAlarmOut
 ==    ======================================================================
-==    $DSC :    ¸Ãº¯ÊıÓÃÀ´ÊÖ¶¯Ò»´ÎĞÔ¶ÔËùÓĞµÄÁª¶¯Í¨µÀË¢ĞÂÒ»±é
+==    $DSC :    è¯¥å‡½æ•°ç”¨æ¥æ‰‹åŠ¨ä¸€æ¬¡æ€§å¯¹æ‰€æœ‰çš„è”åŠ¨é€šé“åˆ·æ–°ä¸€é
 ==    $ARG :    
 ==         :    
 ==    $RET :    
@@ -265,21 +265,21 @@ int CAlarm::SetAlarmOut(uint64 dwState, int iType)
     switch (iType)
     {
     case ALARM_OUT_AUTO:
-        //Ö»ÓĞÔÚ×Ô¶¯Ä£Ê½ÏÂ¿ÉÒÔÊä³ö
+        //åªæœ‰åœ¨è‡ªåŠ¨æ¨¡å¼ä¸‹å¯ä»¥è¾“å‡º
         for (i = 0; i < m_nAlarmOut; i++)
         {
-            if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x0)//×Ô¶¯Ä£Ê½ÏÂ
+            if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x0)//è‡ªåŠ¨æ¨¡å¼ä¸‹
             {
                 dwOutState |= (dwState & BITMSK64(i));
                 m_dwManualAlarmState &= ~(BITMSK64(i));
             }
-            else if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x1)//ÊÖ¶¯Ä£Ê½
+            else if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x1)//æ‰‹åŠ¨æ¨¡å¼
             {
                 m_dwManualAlarmState |= BITMSK64(i);
             }
             else
             {
-                //¹Ø±Õ±¨¾¯Êä³öÄ£Ê½£¬±¨¾¯Êä³ö²»¿ÉÓÃ.
+                //å…³é—­æŠ¥è­¦è¾“å‡ºæ¨¡å¼ï¼ŒæŠ¥è­¦è¾“å‡ºä¸å¯ç”¨.
                 m_dwManualAlarmState &= ~(BITMSK64(i));
             }                
         }        
@@ -292,7 +292,7 @@ int CAlarm::SetAlarmOut(uint64 dwState, int iType)
         {
             if ((m_dwManualAlarmState & BITMSK64(i)) && (!(m_dwAlarmOutState & BITMSK64(i))))
             {
-                if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x0)//×Ô¶¯Ä£Ê½
+                if (((m_dwAlarmOutType >> (2 * i)) & 0x3) == 0x0)//è‡ªåŠ¨æ¨¡å¼
                 {
                     m_dwManualAlarmState &= ~(BITMSK64(i));
                 }
@@ -314,7 +314,7 @@ uint64 CAlarm::GetAlarmOut()
     return m_pDevAlarm->GetOutState();
 }
 
-//»ñÈ¡±¨¾¯ÊÂ¼ş·¢ËÍÊ±¼äºÍ¶ÔÓ¦µÄuuid
+//è·å–æŠ¥è­¦äº‹ä»¶å‘é€æ—¶é—´å’Œå¯¹åº”çš„uuid
 void CAlarm::GetAlarmTime(std::string &m_time)
 {
 	char tmp[64]={0};
@@ -348,7 +348,7 @@ void CAlarm::onConfigAlarm(CConfigAlarm& config, int &ret)
         CONFIG_ALARM& cfgNew = config.getConfig(i);
         if (memcmp(&cfgOld.hEvent, &cfgNew.hEvent, sizeof(EVENT_HANDLER)) != 0)
         {
-            if (cfgNew.iSensorType == cfgOld.iSensorType)//ĞŞ¸Ä³£¿ª³£±ÕÊ±£¬´¥·¢µÄ±¨¾¯ĞÅÏ¢Í¨¹ı±¨¾¯Ïß³ÌÀ´·¢ËÍ£¬²»ÔÚÕâÀï·¢ËÍ
+            if (cfgNew.iSensorType == cfgOld.iSensorType)//ä¿®æ”¹å¸¸å¼€å¸¸é—­æ—¶ï¼Œè§¦å‘çš„æŠ¥è­¦ä¿¡æ¯é€šè¿‡æŠ¥è­¦çº¿ç¨‹æ¥å‘é€ï¼Œä¸åœ¨è¿™é‡Œå‘é€
             {
                 if ((m_dwAlarmState & BITMSK64(i)) && (cfgNew.bEnable))
                 {
@@ -356,7 +356,7 @@ void CAlarm::onConfigAlarm(CConfigAlarm& config, int &ret)
 						&m_CCfgAlarm.getLatest(i).hEvent, &CConfigALMWorksheet::getLatest(i));    
                 }
             }
-            else//µ±ÕıÔÚ±¨¾¯Áª¶¯µÄ¹ı³ÌÖĞ,¶ÔÅäÖÃ»Ö¸´ÁËÄ¬ÈÏ,´æÔÚ±¨¾¯Êä³öÁª¶¯Ç°ºÍ»Ö¸´Ä¬ÈÏºóµÄÅäÖÃ²»Ò»ÖÂ;µ¼ÖÂÁª¶¯Êä³ö²»ÄÜÍ£Ö¹.
+            else//å½“æ­£åœ¨æŠ¥è­¦è”åŠ¨çš„è¿‡ç¨‹ä¸­,å¯¹é…ç½®æ¢å¤äº†é»˜è®¤,å­˜åœ¨æŠ¥è­¦è¾“å‡ºè”åŠ¨å‰å’Œæ¢å¤é»˜è®¤åçš„é…ç½®ä¸ä¸€è‡´;å¯¼è‡´è”åŠ¨è¾“å‡ºä¸èƒ½åœæ­¢.
             {
                 if ((m_dwAlarmState & BITMSK64(i)) && (cfgNew.bEnable)
                     && ((TRUE == cfgOld.hEvent.bAlarmOutEn)))
@@ -370,7 +370,7 @@ void CAlarm::onConfigAlarm(CConfigAlarm& config, int &ret)
                     VF_IAppEventManager::instance()->notify(getEventName(appEventAlarmLocal), i, appEventStop, &m_CCfgAlarm.getConfig(i).hEvent,
                         &CConfigALMWorksheet::getLatest(i),&table_data);
 
-                    //´¦ÀíÕıÔÚ±¨¾¯Êä³öÊ±,»Ö¸´Ä¬ÈÏ²»ÄÜÍ£Ö¹ÎÊÌâ
+                    //å¤„ç†æ­£åœ¨æŠ¥è­¦è¾“å‡ºæ—¶,æ¢å¤é»˜è®¤ä¸èƒ½åœæ­¢é—®é¢˜
                     for (int j = 0; j < m_nAlarmOut; j++)
                     {
                         CLinkage *pLinkage = m_cAlarmOutLinkage + j;
@@ -406,7 +406,7 @@ void CAlarm::onConfigNetAlarm(CConfigNetAlarm &config, int &ret)
     m_CCfgNetAlarm.update();
 }
 
-//´¦Àí±¨¾¯Êä³ö
+//å¤„ç†æŠ¥è­¦è¾“å‡º
 void CAlarm::onAppEvent(std::string code_str, int index, appEventAction action, const EVENT_HANDLER *param, const CConfigTable* data)
 {
     int i;    
@@ -421,7 +421,7 @@ void CAlarm::onAppEvent(std::string code_str, int index, appEventAction action, 
     if ((code == appEventStorageReadErr) || (code == appEventStorageWriteErr) ||(code == appEventStorageFailure))
     {
 //#ifdef HDDALM_SUPPORT_BEEP
-        //Ó²ÅÌ³ö´íÊ±,½øĞĞ·äÃùÌáÊ¾
+        //ç¡¬ç›˜å‡ºé”™æ—¶,è¿›è¡Œèœ‚é¸£æç¤º
         if (action == appEventStart && param->bBeep)
         {
             SystemBeep(880,5000);
@@ -486,9 +486,9 @@ void CAlarm::onAppEvent(std::string code_str, int index, appEventAction action, 
         {
             CLinkage *pLinkage = m_cAlarmOutLinkage + i;
             ///modefied by nike.xie  2009-07-14
-            ///*È¥³ıÊä³öÍ¨µÀµÄ¿ª¹ØĞ£Ñé£¬Ä¿µÄÊÇ·ÀÖ¹Ä³Êä³öÍ¨µÀ´¦ÓÚÑÓ³ÙÊä³ö×´Ì¬(µÈ´ı¹Ø±Õ)£¬
-            ///*Êä³öÍ¨µÀµÄ¿ª¹ØÒÑ¾­±»ÓÃ»§¸Ä±ä£¬¶øÔì³ÉÎŞ·¨¹Ø±Õ¸ÃÊä³öÍ¨µÀµÄ±¨¾¯Êä³ö
-            ///*ÎŞÂÛÄ³Êä³öÍ¨µÀµÄÊÇ¿ªÆô»¹ÊÇ¹Ø±Õ£¬Ö»Òª¸ÃÍ¨µÀ´æÔÚÊä³ö£¬¾Í¹Ø±Õ¸ÃÍ¨µÀµÄÊä³ö
+            ///*å»é™¤è¾“å‡ºé€šé“çš„å¼€å…³æ ¡éªŒï¼Œç›®çš„æ˜¯é˜²æ­¢æŸè¾“å‡ºé€šé“å¤„äºå»¶è¿Ÿè¾“å‡ºçŠ¶æ€(ç­‰å¾…å…³é—­)ï¼Œ
+            ///*è¾“å‡ºé€šé“çš„å¼€å…³å·²ç»è¢«ç”¨æˆ·æ”¹å˜ï¼Œè€Œé€ æˆæ— æ³•å…³é—­è¯¥è¾“å‡ºé€šé“çš„æŠ¥è­¦è¾“å‡º
+            ///*æ— è®ºæŸè¾“å‡ºé€šé“çš„æ˜¯å¼€å¯è¿˜æ˜¯å…³é—­ï¼Œåªè¦è¯¥é€šé“å­˜åœ¨è¾“å‡ºï¼Œå°±å…³é—­è¯¥é€šé“çš„è¾“å‡º
             ///if ((pLinkage->stop(code, index)) && (pLinkage->isEmpty()) && (param->dwAlarmOut & BITMSK(i)))
             if ((pLinkage->stop(code_str, index)) && (pLinkage->isEmpty()) )
             {
@@ -516,7 +516,7 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
     {
         for (i = 0; i < m_nAlarmIn; i++)
         {
-            //±¾µØ±¨¾¯¿ª¹Ø
+            //æœ¬åœ°æŠ¥è­¦å¼€å…³
             if (TRUE == m_CCfgAlarm[i].bEnable)
             {    
                 if (NC == m_CCfgAlarm[i].iSensorType)
@@ -524,8 +524,8 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
                     dwState ^= BITMSK64(i);
                 }
 
-                //ÓĞ±¨¾¯À´£¬ÇÒ±¾ÉíÒÑ´¦ÓÚ±¨¾¯×´Ì¬£¬È¡Ïû±¨¾¯¶¨Ê±Æ÷
-                //!ÖªµÀ£¬±¨¾¯Çå³ıµ½À´
+                //æœ‰æŠ¥è­¦æ¥ï¼Œä¸”æœ¬èº«å·²å¤„äºæŠ¥è­¦çŠ¶æ€ï¼Œå–æ¶ˆæŠ¥è­¦å®šæ—¶å™¨
+                //!çŸ¥é“ï¼ŒæŠ¥è­¦æ¸…é™¤åˆ°æ¥
                 if ((dwState & m_dwAlarmState )& BITMSK64(i))
                 {
                 	m_iAlarmLatchDelay[i] = -1;
@@ -543,7 +543,7 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
 					   }
 					   else
 					   {
-						   // Éè±¸±¨¾¯ÊäÈë×´Ì¬
+						   // è®¾å¤‡æŠ¥è­¦è¾“å…¥çŠ¶æ€
 						  if(m_iAlarmLatchDelay[i] <= 0)
 						   {   
 						  	   std::string sTime;
@@ -570,7 +570,7 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
 				    GetAlarmTime(sTime);
 				    table_data["IDTDataInfoExt"][0u]["time"] = sTime;
 				    table_data["IDTDataInfoExt"][0u]["uuid"] = m_stAlarmUuid[i];
-					//±¾µØ±¨¾¯½áÊø£¬Í¨ÖªÊÂ¼şÖĞĞÄ
+					//æœ¬åœ°æŠ¥è­¦ç»“æŸï¼Œé€šçŸ¥äº‹ä»¶ä¸­å¿ƒ
 					m_CCfgAlarm.getConfig(i).hEvent.dwAlarmOut = 0x3F;
 
 					VF_IAppEventManager::instance()->notify(getEventName(appEventAlarmLocal), i, appEventStop, &m_CCfgAlarm.getConfig(i).hEvent, 
@@ -586,10 +586,10 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
 
         for (i = 0; i < m_nNetAlarmIn; i++)
         {
-            //ÍøÂç±¨¾¯¿ª¹Ø
+            //ç½‘ç»œæŠ¥è­¦å¼€å…³
             if (TRUE == m_CCfgNetAlarm[i].bEnable)
             {
-                //ÓĞÍøÂç±¨¾¯ÊäÈëÊ±£¬Í¨ÖªÊÂ¼şÖĞĞÄ
+                //æœ‰ç½‘ç»œæŠ¥è­¦è¾“å…¥æ—¶ï¼Œé€šçŸ¥äº‹ä»¶ä¸­å¿ƒ
                 if ((dwState ^ m_dwNetAlarmState )& BITMSK64(i))
                 {
                     if (m_dwNetAlarmState & BITMSK64(i))
@@ -629,7 +629,7 @@ void CAlarm::Alarm(uint64 dwState, int iEventType ,char *pContext)
 				    table_data["IDTDataInfoExt"][0u]["time"] = sTime;
 				    table_data["IDTDataInfoExt"][0u]["uuid"] = m_stNetAlarmUuid[i];
                     m_dwNetAlarmState &= ~(BITMSK64(i));
-                    //ÍøÂç±¨¾¯½áÊø£¬Í¨ÖªÊÂ¼şÖĞĞÄ
+                    //ç½‘ç»œæŠ¥è­¦ç»“æŸï¼Œé€šçŸ¥äº‹ä»¶ä¸­å¿ƒ
                     VF_IAppEventManager::instance()->notify(getEventName(appEventAlarmNet), i, appEventStop, &m_CCfgNetAlarm.getConfig(i).hEvent, 
                         &CConfigNetAlmWorksheet::getLatest(i), &table_data);                    
                 }
